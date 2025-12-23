@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: zenstream
+      POSTGRES_PASSWORD: zenstream
+      POSTGRES_DB: zenstream
+    volumes:
+      - data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zenstream"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg2://zenstream:zenstream@db:5432/zenstream
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: changeme
+      DATA_DIR: /data
+    ports:
+      - "7575:7575"
+    volumes:
+      - data:/data
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+  runner:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg2://zenstream:zenstream@db:5432/zenstream
+      RUNNER_ID: default-runner
+      DATA_DIR: /data
+    command: ["python", "-m", "runner.main"]
+    volumes:
+      - data:/data
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  data:
