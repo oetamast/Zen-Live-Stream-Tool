@@ -1,0 +1,43 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: zenstream
+      POSTGRES_PASSWORD: zenstream
+      POSTGRES_DB: zenstream
+    volumes:
+      - data:/var/lib/postgresql/data
+    restart: unless-stopped
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg2://zenstream:zenstream@db:5432/zenstream
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: changeme
+      DATA_DIR: /data
+    ports:
+      - "7575:7575"
+    volumes:
+      - data:/data
+    depends_on:
+      - db
+    restart: unless-stopped
+  runner:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg2://zenstream:zenstream@db:5432/zenstream
+      RUNNER_ID: default-runner
+      DATA_DIR: /data
+    command: ["python", "-m", "runner.main"]
+    volumes:
+      - data:/data
+    depends_on:
+      - db
+    restart: unless-stopped
+volumes:
+  data:
