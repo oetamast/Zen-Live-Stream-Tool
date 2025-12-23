@@ -39,12 +39,13 @@ Key environment variables are read by the API and runner:
 
 ## Usage highlights
 
-1. Hit `http://localhost:8000/wizard` to see the bootstrap steps.
+1. Hit `http://localhost:7575/wizard` to see the bootstrap steps and bootstrap the admin login.
 2. Change the admin password via `POST /auth/change-password` (Basic Auth).
-3. Activate a license via `POST /license/activate` (provide `install_id`, `install_secret`, `tier`).
-4. Create assets, destinations, presets, and jobs via the corresponding REST endpoints. Crossfade requires loop, audio replacement needs Premium+, and scenes need Ultimate.
-5. Create schedules; open-ended schedules require loop-enabled jobs. The runner converts eligible schedules into queued sessions on every heartbeat.
-6. Inspect sessions/events via `GET /sessions`.
+3. Issue member licenses in-dashboard with `POST /license/issue`, then activate with `POST /license/activate` using the bound install id/secret; renewals are hourly with outage grace tracked automatically.
+4. Monitor member counts across Basic/Premium/Ultimate with `GET /license/metrics` and audit history via `GET /license/activity`.
+5. Create assets, destinations, presets, and jobs via the corresponding REST endpoints. Crossfade requires loop, audio replacement needs Premium+, and scenes need Ultimate. License downgrades auto-create job backups you can restore from `POST /jobs/{id}/restore`.
+6. Create schedules; open-ended schedules require loop-enabled jobs. The runner converts eligible schedules into queued sessions on every heartbeat.
+7. Inspect sessions/events via `GET /sessions`. Export/import non-license configuration via `GET /config/export` and `POST /config/import` (license identity is excluded).
 
 ## Updating
 

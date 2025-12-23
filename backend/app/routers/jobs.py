@@ -48,6 +48,12 @@ def list_jobs(filter_status: Optional[str] = None, session: Session = Depends(ge
     return session.exec(query).all()
 
 
+@router.get("/backups", response_model=List[models.JobBackup])
+def list_backups(session: Session = Depends(get_session), admin=Depends(require_password_reset)):
+    stmt = select(models.JobBackup).order_by(models.JobBackup.created_at.desc())
+    return session.exec(stmt).all()
+
+
 @router.patch("/{job_id}", response_model=models.Job)
 def update_job(job_id: int, payload: models.JobBase, session: Session = Depends(get_session), admin=Depends(require_password_reset)):
     job = session.get(models.Job, job_id)
@@ -76,3 +82,25 @@ def run_now(job_id: int, session: Session = Depends(get_session), admin=Depends(
     session.commit()
     session.refresh(new_session)
     return new_session
+
+
+@router.post("/{job_id}/restore", response_model=models.Job)
+def restore_job(job_id: int, session: Session = Depends(get_session), admin=Depends(require_password_reset)):
+    backup = session.exec(
+        select(models.JobBackup).where(models.JobBackup.job_id == job_id).order_by(models.JobBackup.created_at.desc())
+    ).first()
+    if not backup:
+        raise HTTPException(status_code=404, detail="No backup found for job")
+    job = session.get(models.Job, job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    restored = models.Job.model_validate_json(backup.backup_json)
+    for key, value in restored.model_dump(exclude={"id"}).items():
+        setattr(job, key, value)
+    job.status = "draft"
+    job.invalid_reasons = None
+    job.updated_at = datetime.utcnow()
+    session.add(job)
+    session.commit()
+    session.refresh(job)
+    return job

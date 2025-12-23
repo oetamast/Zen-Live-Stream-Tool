@@ -167,9 +167,49 @@ class LicenseStateBase(SQLModel):
     lease_expires_at: Optional[datetime] = None
     last_check_at: Optional[datetime] = None
     grace_started_at: Optional[datetime] = None
+    member_license_id: Optional[int] = None
 
 
 class LicenseState(LicenseStateBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+
+
+class MemberLicenseBase(SQLModel):
+    install_id: str
+    install_secret_hash: str
+    tier: str = "Basic"
+    notes: Optional[str] = None
+    active: bool = True
+    issued_at: datetime = Field(default_factory=datetime.utcnow)
+    expires_at: Optional[datetime] = None
+    last_check_at: Optional[datetime] = None
+    grace_started_at: Optional[datetime] = None
+
+
+class MemberLicense(MemberLicenseBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+
+
+class LicenseActivityBase(SQLModel):
+    install_id: str
+    action: str
+    message: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class LicenseActivity(LicenseActivityBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+
+
+class JobBackupBase(SQLModel):
+    job_id: int
+    previous_tier: str
+    backup_json: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    disabled_copy: bool = True
+
+
+class JobBackup(JobBackupBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
 
 

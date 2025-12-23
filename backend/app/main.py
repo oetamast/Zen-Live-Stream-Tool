@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse
 from .auth import authenticate, require_password_reset, update_password
 from .config import get_settings
 from .database import lifespan
-from .routers import assets, destinations, jobs, license, presets, schedules, sessions
+from .routers import assets, configuration, destinations, jobs, license, presets, schedules, sessions
 from .storage import ensure_data_folders
 
 settings = get_settings()
@@ -21,6 +21,7 @@ app.include_router(jobs.router)
 app.include_router(schedules.router)
 app.include_router(sessions.router)
 app.include_router(license.router)
+app.include_router(configuration.router)
 
 
 @app.get("/health")

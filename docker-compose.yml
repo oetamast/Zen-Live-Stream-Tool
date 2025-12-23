@@ -19,7 +19,7 @@ services:
       ADMIN_PASSWORD: changeme
       DATA_DIR: /data
     ports:
-      - "8000:8000"
+      - "7575:7575"
     volumes:
       - data:/data
     depends_on:
